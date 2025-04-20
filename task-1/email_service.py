@@ -4,49 +4,54 @@ import pickle
 from google.auth.transport.requests import Request
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
-from email.mime.text import MIMEText
 from datetime import datetime
-import json
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any
 
-# If modifying these scopes, delete the file token.pickle.
+# Gmail API scopes
 SCOPES = ['https://www.googleapis.com/auth/gmail.readonly']
 
 def get_gmail_service():
+    """Get authenticated Gmail service."""
     creds = None
-    # The file token.pickle stores the user's access and refresh tokens, and is
-    # created automatically when the authorization flow completes for the first time.
+    
+    # Load existing credentials if available
     if os.path.exists('token.pickle'):
         with open('token.pickle', 'rb') as token:
             creds = pickle.load(token)
-    # If there are no (valid) credentials available, let the user log in.
+            
+    # Refresh or create new credentials
     if not creds or not creds.valid:
         if creds and creds.expired and creds.refresh_token:
             creds.refresh(Request())
         else:
             flow = InstalledAppFlow.from_client_secrets_file(
                 'credentials.json', SCOPES)
-            # Use the exact redirect URI that Google expects
             flow.redirect_uri = 'http://localhost:8080/'
             creds = flow.run_local_server(port=8080)
-        # Save the credentials for the next run
+            
+        # Save credentials for future use
         with open('token.pickle', 'wb') as token:
             pickle.dump(creds, token)
 
     return build('gmail', 'v1', credentials=creds)
 
 def get_email_data(service, message_id: str) -> Dict[str, Any]:
-    message = service.users().messages().get(userId='me', id=message_id, format='full').execute()
+    """Get detailed email data."""
+    message = service.users().messages().get(
+        userId='me', 
+        id=message_id, 
+        format='full'
+    ).execute()
     
+    # Extract headers
     headers = message['payload']['headers']
     subject = next((h['value'] for h in headers if h['name'].lower() == 'subject'), 'No Subject')
     sender = next((h['value'] for h in headers if h['name'].lower() == 'from'), 'Unknown')
     date = next((h['value'] for h in headers if h['name'].lower() == 'date'), '')
     
+    # Parse and format date
     try:
-        # Parse the email date
         timestamp = datetime.strptime(date, '%a, %d %b %Y %H:%M:%S %z')
-        # Format the timestamp in a user-readable format
         formatted_date = timestamp.strftime('%B %d, %Y %I:%M %p')
     except:
         timestamp = datetime.now()
@@ -72,6 +77,7 @@ def get_email_data(service, message_id: str) -> Dict[str, Any]:
     }
 
 def download_attachment(service, message_id: str, attachment_id: str) -> bytes:
+    """Download email attachment."""
     attachment = service.users().messages().attachments().get(
         userId='me',
         messageId=message_id,
@@ -81,17 +87,17 @@ def download_attachment(service, message_id: str, attachment_id: str) -> bytes:
     return base64.urlsafe_b64decode(attachment['data'])
 
 def fetch_emails(service, max_results: int = 10) -> List[Dict[str, Any]]:
-    results = service.users().messages().list(userId='me', maxResults=max_results).execute()
+    """Fetch list of emails."""
+    results = service.users().messages().list(
+        userId='me', 
+        maxResults=max_results
+    ).execute()
     messages = results.get('messages', [])
     
-    emails = []
-    for message in messages:
-        email_data = get_email_data(service, message['id'])
-        emails.append(email_data)
-    
-    return emails
+    return [get_email_data(service, message['id']) for message in messages]
 
 def get_email_with_attachment(service, message_id: str, attachment_id: str) -> Dict[str, Any]:
+    """Get email with attachment data."""
     email_data = get_email_data(service, message_id)
     attachment_data = download_attachment(service, message_id, attachment_id)
     

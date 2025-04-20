@@ -5,7 +5,9 @@ import enum
 from database import Base
 
 class User(Base):
+    """User model for database."""
     __tablename__ = "users"
+
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String(255), index=True)
     email = Column(String(255), unique=True, index=True)
@@ -16,6 +18,7 @@ class User(Base):
     last_login = Column(DateTime, nullable=True)
 
     def has_permission(self, permission: str) -> bool:
+        """Check if user has a specific permission."""
         if not self.permissions:
             return False
         return permission in self.permissions.split(',')

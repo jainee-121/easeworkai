@@ -1,8 +1,8 @@
 from datetime import timedelta
-from fastapi import FastAPI, Depends, HTTPException, status, BackgroundTasks
+from fastapi import FastAPI, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from fastapi.security import OAuth2PasswordRequestForm
-from fastapi.responses import StreamingResponse, JSONResponse
+from fastapi.responses import StreamingResponse
 import crud, models, schemas, auth
 from database import engine, get_db
 from middleware import add_cors_middleware, add_security_middleware
@@ -13,11 +13,17 @@ import io
 import base64
 from typing import List, Dict, Any
 
+# Create database tables
 models.Base.metadata.create_all(bind=engine)
 
-app = FastAPI()
+# Initialize FastAPI app
+app = FastAPI(
+    title="Email Management System",
+    description="API for managing emails and user authentication",
+    version="1.0.0"
+)
 
-# Add security middleware
+# Add middleware
 add_cors_middleware(app)
 add_security_middleware(app)
 
@@ -26,7 +32,8 @@ async def login_for_access_token(
     form_data: OAuth2PasswordRequestForm = Depends(),
     db: Session = Depends(get_db)
 ):
-    user = crud.authenticate_user(db,form_data.username,form_data.password)
+    """Authenticate user and return access token."""
+    user = crud.authenticate_user(db, form_data.username, form_data.password)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -40,11 +47,9 @@ async def login_for_access_token(
     )
     return {"access_token": access_token, "token_type": "bearer"}
 
-
 @app.post("/logout")
-async def logout(
-    current_user: schemas.User = Depends(auth.get_current_user)
-):  
+async def logout(current_user: schemas.User = Depends(auth.get_current_user)):
+    """Logout user."""
     return {"message": "Logged out successfully"}
 
 @app.post("/users", response_model=schemas.User)
@@ -52,20 +57,21 @@ async def register_user(
     user: schemas.UserCreate,
     db: Session = Depends(get_db)
 ):
-    db_user = crud.get_user_by_email(db,email=user.email)
+    """Register new user."""
+    db_user = crud.get_user_by_email(db, email=user.email)
     if db_user:
         raise HTTPException(status_code=400, detail="Email already registered")
-    return crud.create_user(db=db,user=user)
+    return crud.create_user(db=db, user=user)
 
 @app.get("/emails", response_model=List[Dict[str, Any]])
 async def get_emails(
     max_results: int = 10,
     current_user: schemas.User = Depends(auth.get_current_user)
 ):
+    """Get list of emails."""
     try:
         service = email_service.get_gmail_service()
-        emails = email_service.fetch_emails(service, max_results)
-        return emails
+        return email_service.fetch_emails(service, max_results)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -74,10 +80,10 @@ async def get_email(
     message_id: str,
     current_user: schemas.User = Depends(auth.get_current_user)
 ):
+    """Get specific email details."""
     try:
         service = email_service.get_gmail_service()
-        email_data = email_service.get_email_data(service, message_id)
-        return email_data
+        return email_service.get_email_data(service, message_id)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -87,6 +93,7 @@ async def get_attachment(
     attachment_id: str,
     current_user: schemas.User = Depends(auth.get_current_user)
 ):
+    """Download email attachment."""
     try:
         service = email_service.get_gmail_service()
         attachment_data = email_service.download_attachment(service, message_id, attachment_id)
@@ -105,6 +112,7 @@ async def get_attachment_base64(
     attachment_id: str,
     current_user: schemas.User = Depends(auth.get_current_user)
 ):
+    """Get email attachment in base64 format."""
     try:
         service = email_service.get_gmail_service()
         attachment_data = email_service.download_attachment(service, message_id, attachment_id)
