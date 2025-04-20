@@ -1,6 +1,7 @@
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
 import models, schemas, auth
+from datetime import datetime
 
 def get_users(db: Session, user_id: int):
     """Get user by ID."""
@@ -32,5 +33,11 @@ def authenticate_user(db: Session, email: str, password: str):
     user = get_user_by_email(db, email)
     if not user or not auth.verify_password(password, user.hashed_password):
         return False
+    
+    # Update last_login timestamp
+    user.last_login = datetime.now()
+    db.commit()
+    db.refresh(user)
+    
     return user
 

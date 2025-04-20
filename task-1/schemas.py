@@ -17,7 +17,7 @@ class Note(NoteBase):
     id: int
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class UserBase(BaseModel):
     """Base user schema."""
@@ -34,7 +34,7 @@ class User(UserBase):
     is_active: bool
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class Token(BaseModel):
     """Schema for authentication token."""
