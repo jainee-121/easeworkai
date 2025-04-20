@@ -1,6 +1,7 @@
 # EaseWorkAI: TASK-1
 
 Task-1 is an application that connects to the Gmail API to fetch, process, and serve emails and attachments through authenticated API endpoints.
+<br>
 ###Reference and additional tool used:
 -https://github.com/jainee-121/e-commerce
 -CusorAI(for debugging)
