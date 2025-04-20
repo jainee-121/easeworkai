@@ -138,7 +138,8 @@ class Attachment:
        response = client.post("/users", json={
            "email": "test@example.com",
            "name": "Test User",
-           "password": "testpass123"
+           "password": "testpass123",
+           "confirm-password": "testpass123"
        })
        assert response.status_code == 200
        assert response.json()["email"] == "test@example.com"
@@ -149,7 +150,7 @@ class Attachment:
    def test_authentication():
        # Login
        response = client.post("/token", data={
-           "username": "test@example.com",
+           "email": "test@example.com",
            "password": "testpass123"
        })
        assert response.status_code == 200
