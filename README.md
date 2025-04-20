@@ -4,6 +4,9 @@ Task-1 is an application that connects to the Gmail API to fetch, process, and s
 
 ### Reference and additional tool used:
 - https://github.com/jainee-121/e-commerce
+- https://fastapi.tiangolo.com/
+- https://docs.streamlit.io/
+- https://github.com/jtayl222/fastapi_streamlit_example
 - CusorAI(for debugging)
 
 ## Setup Instructions
