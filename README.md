@@ -214,3 +214,65 @@ This will launch the API server and connect to the Gmail API.
 uvicorn main:app --reload
 ```
 Use this command for development with auto-reloading enabled.
+
+#EaseWorkAI: TASK-2 Customer Data Aggregation Pipeline
+
+This project implements a data aggregation pipeline for analyzing customer purchasing patterns and generating reports for high-value customers.
+
+## Features
+
+- Analyzes customer data to identify high-value customers
+- Calculates key metrics including:
+  - Total lifetime spend
+  - Average order value
+  - Favorite product category
+  - Loyalty tier (Bronze, Silver, Gold)
+  - Last purchase date
+  - Active status (purchases in last 6 months)
+  - Category-wise spending breakdown
+
+## Requirements
+
+- Python 3.6+
+- No external dependencies required
+
+## Usage
+
+1. Run the script:
+```bash
+python customer_analysis.py
+```
+
+2. The script will output a JSON report containing customer analysis data.
+
+## Sample Data
+
+The script includes sample data for 8 customers with varying:
+- Spending patterns
+- Order frequencies
+- Purchase categories
+- Activity status
+
+## Output Format
+
+The report includes the following fields for each customer:
+- customerId
+- name
+- email
+- totalSpent
+- averageOrderValue
+- favoriteCategory
+- loyaltyTier
+- lastPurchaseDate
+- isActive
+- categoryWiseSpend
+
+## Additional Criteria
+
+- Customers with total spend < 500 are excluded
+- Loyalty tiers:
+  - Bronze: < 1000
+  - Silver: 1000-3000
+  - Gold: > 3000
+- Active status is determined by purchases in the last 6 months
+- Favorite category ties are resolved by selecting the earliest category alphabetically
