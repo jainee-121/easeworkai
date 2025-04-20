@@ -1,0 +1,4 @@
+venv/
+.env
+task-1/credentials.json
+task-1/token.pickle
